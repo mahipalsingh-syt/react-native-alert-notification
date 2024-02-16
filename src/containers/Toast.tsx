@@ -2,9 +2,8 @@ import * as React from 'react';
 import { Animated, Image, Pressable, StyleProp, StyleSheet, Text, TextStyle, View } from 'react-native';
 // import { SafeAreaInsetsContext } from 'react-native-safe-area-context';
 import { ACTION, ALERT_TYPE, ENV, colors } from '../config/ENV';
-import { Color, getImage } from '../service';
+import { Color, getImage, testProps } from '../service';
 import Icon from 'react-native-vector-icons/AntDesign';
-import { testProps } from '../service/identifier';
 
 export type IConfigToast = {
   autoClose?: number | boolean;

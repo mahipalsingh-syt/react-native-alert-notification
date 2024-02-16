@@ -1,8 +1,7 @@
 import * as React from 'react';
 import { Animated, Image, Modal, Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { ACTION, ALERT_TYPE, ENV, colors } from '../config';
-import { Color, getImage } from '../service';
-import { testProps } from 'src/service/identifier';
+import { Color, getImage, testProps } from '../service';
 
 export type IConfigDialog = {
   type: ALERT_TYPE;
