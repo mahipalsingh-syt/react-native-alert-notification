@@ -148,7 +148,7 @@ export class Toast extends React.Component<IProps, IState> {
    */
   private _startAnimation = (action: ACTION) => {
     Animated.timing(this._positionToast, {
-      toValue: action === ACTION.OPEN ? this.context?.top ?? 0 : -this._cardHeight,
+      toValue: action === ACTION.OPEN ? this.context?.top ?? SIZES(30) : -this._cardHeight,
       duration: 250,
       useNativeDriver: true,
     }).start();
