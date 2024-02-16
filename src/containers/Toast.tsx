@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { Animated, Image, Pressable, StyleProp, StyleSheet, Text, TextStyle, View } from 'react-native';
-import { SafeAreaInsetsContext } from 'react-native-safe-area-context';
+// import { SafeAreaInsetsContext } from 'react-native-safe-area-context';
 import { ACTION, ALERT_TYPE, ENV, colors } from '../config/ENV';
 import { Color, getImage, testProps, SIZES } from '../service';
 import Icon from 'react-native-vector-icons/AntDesign';
@@ -59,7 +59,7 @@ export class Toast extends React.Component<IProps, IState> {
   /**
    * @type {React.ContextType<typeof SafeAreaInsetsContext>}
    */
-  public declare context: React.ContextType<typeof SafeAreaInsetsContext>;
+  // public context!: React.ContextType<typeof SafeAreaInsetsContext>;
 
   /**
    * @type {Animated.Value}
