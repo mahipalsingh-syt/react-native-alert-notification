@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { Animated, Image, Modal, Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { ACTION, ALERT_TYPE, ENV, colors } from '../config';
-import { Color, getImage, testProps } from '../service';
+import { Color, getImage, testProps, SIZES } from '../service';
 
 export type IConfigDialog = {
   type: ALERT_TYPE;
@@ -312,7 +312,7 @@ const __styles = (isDark: boolean) =>
     },
 
     titleLabel: {
-      fontSize: 18,
+      fontSize: SIZES(18),
       // fontFamily: fontFamily.semibold,
       color: Color.get('label', isDark),
     },
@@ -333,7 +333,7 @@ const __styles = (isDark: boolean) =>
     buttonLabel: {
       color: '#fff',
 
-      fontSize: 15,
+      fontSize: SIZES(15),
       // fontFamily: fontFamily.semibold,
     },
     [ALERT_TYPE.SUCCESS]: {
@@ -363,7 +363,7 @@ const __styles = (isDark: boolean) =>
       width: 80,
       aspectRatio: 1,
       position: 'absolute',
-      top: -35,
+      top: SIZES(-35),
     },
 
     [`${ALERT_TYPE.SUCCESS}Image`]: {

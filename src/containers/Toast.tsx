@@ -1,8 +1,8 @@
 import * as React from 'react';
 import { Animated, Image, Pressable, StyleProp, StyleSheet, Text, TextStyle, View } from 'react-native';
-// import { SafeAreaInsetsContext } from 'react-native-safe-area-context';
+import { SafeAreaInsetsContext } from 'react-native-safe-area-context';
 import { ACTION, ALERT_TYPE, ENV, colors } from '../config/ENV';
-import { Color, getImage, testProps } from '../service';
+import { Color, getImage, testProps, SIZES } from '../service';
 import Icon from 'react-native-vector-icons/AntDesign';
 
 export type IConfigToast = {
@@ -59,7 +59,7 @@ export class Toast extends React.Component<IProps, IState> {
   /**
    * @type {React.ContextType<typeof SafeAreaInsetsContext>}
    */
-  // public context!: React.ContextType<typeof SafeAreaInsetsContext>;
+  public declare context: React.ContextType<typeof SafeAreaInsetsContext>;
 
   /**
    * @type {Animated.Value}
@@ -178,7 +178,7 @@ export class Toast extends React.Component<IProps, IState> {
                 <Text style={styles.startAssessmentText}> {startNewAssessment}</Text>
               </Text>
               <Pressable onPress={this._close}>
-                <Icon name={'close'} size={12} style={{ color: colors.grey20 }} />
+                <Icon name={'close'} size={SIZES(12)} style={{ color: colors.grey20 }} />
               </Pressable>
             </Pressable>
           ) : (
@@ -283,24 +283,24 @@ const __styles = (isDark: boolean) =>
     assessmentCard: {
       width: '92%',
       flexDirection: 'row',
-      borderRadius: 5,
+      borderRadius: SIZES(5),
       paddingVertical: 12,
       backgroundColor: colors.green30,
-      borderWidth: 0.5,
+      borderWidth: SIZES(0.5),
       borderColor: colors.green20,
       alignItems: 'center',
       justifyContent: 'center',
       alignSelf: 'center',
     },
     tickIcon: {
-      width: 18,
-      height: 18,
+      width: SIZES(18),
+      height: SIZES(18),
     },
     textMessage: {
       width: '80%',
-      marginHorizontal: 8,
+      marginHorizontal: SIZES(8),
       // fontFamily: fontFamily.regular,
-      fontSize: 12,
+      fontSize: SIZES(12),
       alignSelf: 'center',
     },
     startAssessmentText: {
