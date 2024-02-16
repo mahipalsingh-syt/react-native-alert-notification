@@ -1,7 +1,8 @@
 import * as React from 'react';
-import { Animated, Image, Modal, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { ACTION, ALERT_TYPE, ENV } from '../config';
+import { Animated, Image, Modal, Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ACTION, ALERT_TYPE, ENV, colors } from '../config';
 import { Color, getImage } from '../service';
+import { testProps } from 'src/service/identifier';
 
 export type IConfigDialog = {
   type: ALERT_TYPE;
@@ -10,7 +11,11 @@ export type IConfigDialog = {
   button?: string;
   autoClose?: number | boolean;
   closeOnOverlayTap?: boolean;
+  showDismissButton?: boolean;
   onPressButton?: () => void;
+  onPressButtonDismiss?: () => void;
+  fontFamilyName?: string;
+  buttonDismiss?: string;
   onShow?: () => void;
   onHide?: () => void;
 };
@@ -81,6 +86,21 @@ export class Dialog extends React.Component<IProps, IState> {
       visible: false,
     };
   }
+
+  private buttonRenderDismiss = (): any => {
+    const { styles } = this.state;
+    const { onPressButtonDismiss, buttonDismiss, showDismissButton } = this.state.config!;
+    if (buttonDismiss && showDismissButton) {
+      return (
+        <TouchableOpacity style={[styles.button, { backgroundColor: colors.grey10 }]} onPress={onPressButtonDismiss ?? this._close} accessible={false}>
+          <Text {...testProps('DialogAlert-buttonDismiss' + buttonDismiss)} style={styles.buttonLabel}>
+            {buttonDismiss}
+          </Text>
+        </TouchableOpacity>
+      );
+    }
+    return <></>;
+  };
 
   /**
    * @param {Readonly<IProps>} prevProps
@@ -181,8 +201,10 @@ export class Dialog extends React.Component<IProps, IState> {
     const { type, onPressButton, button } = this.state.config!;
     if (button) {
       return (
-        <TouchableOpacity style={StyleSheet.flatten([styles.button, styles[type]])} onPress={onPressButton ?? this._close}>
-          <Text style={styles.buttonLabel}>{button}</Text>
+        <TouchableOpacity style={StyleSheet.flatten([styles.button, styles[type]])} onPress={onPressButton ?? this._close} accessible={false}>
+          <Text {...testProps('DialogAlert-button' + type)} style={styles.buttonLabel}>
+            {button}
+          </Text>
         </TouchableOpacity>
       );
     }
@@ -194,8 +216,7 @@ export class Dialog extends React.Component<IProps, IState> {
    */
   private _OverlayCloseRender = (): JSX.Element => {
     if (this.state.config?.closeOnOverlayTap === false ? false : this.props.config?.closeOnOverlayTap !== false) {
-      // eslint-disable-next-line react-native/no-inline-styles
-      return <TouchableOpacity onPressIn={this._close} style={{ flex: 1 }} />;
+      return <Pressable onPressIn={this._close} style={{ flex: 1 }} />;
     }
     return <></>;
   };
@@ -210,9 +231,9 @@ export class Dialog extends React.Component<IProps, IState> {
 
     const {
       styles,
-      config: { title, type, textBody },
+      config: { title, type, textBody, buttonDismiss, showDismissButton },
     } = this.state;
-    const { _buttonRender } = this;
+    const { _buttonRender, buttonRenderDismiss } = this;
     return (
       <Animated.View
         onLayout={({
@@ -224,12 +245,21 @@ export class Dialog extends React.Component<IProps, IState> {
       >
         <View style={styles.backendImage} />
         <Image source={getImage(type)} resizeMode="contain" style={StyleSheet.flatten([styles.image, styles[`${type}Image`]])} />
-        <View style={styles.cardBody}>
-          {title && <Text style={styles.titleLabel}>{title}</Text>}
-          {textBody && <Text style={styles.descLabel}>{textBody}</Text>}
+        <View accessible={true} style={styles.cardBody}>
+          {title !== undefined && (
+            <Text {...testProps('Dialog_title')} style={styles.titleLabel}>
+              {title}
+            </Text>
+          )}
+          {textBody !== undefined && (
+            <Text {...testProps('Dialog_Body')} style={styles.descLabel}>
+              {textBody}
+            </Text>
+          )}
         </View>
-        <View style={styles.cardFooter}>
-          <_buttonRender />
+        <View style={!(buttonDismiss && showDismissButton) ? {} : styles.cardFooter}>
+          {_buttonRender()}
+          {buttonRenderDismiss()}
         </View>
       </Animated.View>
     );
@@ -242,7 +272,7 @@ export class Dialog extends React.Component<IProps, IState> {
     const { visible, styles } = this.state;
     const { _OverlayCloseRender, _CardRender } = this;
     return (
-      <Modal transparent={true} visible={visible} animated={false} onShow={this._showModalHandler}>
+      <Modal transparent={true} visible={visible} animationType="none" onShow={this._showModalHandler}>
         <Animated.View style={StyleSheet.flatten([styles.backgroundContainer, { opacity: this._opacity }])} />
         <_OverlayCloseRender />
         <_CardRender />
@@ -251,6 +281,7 @@ export class Dialog extends React.Component<IProps, IState> {
   };
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const __styles = (isDark: boolean) =>
   StyleSheet.create({
     backgroundContainer: {
@@ -276,21 +307,25 @@ const __styles = (isDark: boolean) =>
       alignItems: 'center',
       overflow: 'hidden',
     },
-    cardFooter: {},
+    cardFooter: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+    },
 
     titleLabel: {
-      fontWeight: 'bold',
-      fontSize: 20,
+      fontSize: 18,
+      // fontFamily: fontFamily.semibold,
       color: Color.get('label', isDark),
     },
     descLabel: {
       textAlign: 'center',
+      // fontFamily: fontFamily.regular,
       color: Color.get('label', isDark),
     },
     button: {
       borderRadius: 50,
       height: 40,
-      width: 130,
+      width: '40%',
       justifyContent: 'center',
       alignItems: 'center',
       alignSelf: 'center',
@@ -298,8 +333,9 @@ const __styles = (isDark: boolean) =>
     },
     buttonLabel: {
       color: '#fff',
-      fontWeight: 'bold',
-      fontSize: 16,
+
+      fontSize: 15,
+      // fontFamily: fontFamily.semibold,
     },
     [ALERT_TYPE.SUCCESS]: {
       backgroundColor: Color.get('success', isDark),
@@ -328,7 +364,7 @@ const __styles = (isDark: boolean) =>
       width: 80,
       aspectRatio: 1,
       position: 'absolute',
-      top: -30,
+      top: -35,
     },
 
     [`${ALERT_TYPE.SUCCESS}Image`]: {

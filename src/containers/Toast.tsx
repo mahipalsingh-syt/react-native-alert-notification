@@ -1,10 +1,10 @@
 import * as React from 'react';
-import { StyleProp, TextStyle } from 'react-native';
-import { SafeAreaInsetsContext } from 'react-native-safe-area-context';
-import { ALERT_TYPE } from '../config';
-import { ToastRender } from './ToastRender';
-
-//export type IModelFunc = (args: { isDark: boolean; type?: ALERT_TYPE; title?: string; description?: string }) => ReactElement;
+import { Animated, Image, Pressable, StyleProp, StyleSheet, Text, TextStyle, View } from 'react-native';
+// import { SafeAreaInsetsContext } from 'react-native-safe-area-context';
+import { ACTION, ALERT_TYPE, ENV, colors } from '../config/ENV';
+import { Color, getImage } from '../service';
+import Icon from 'react-native-vector-icons/AntDesign';
+import { testProps } from '../service/identifier';
 
 export type IConfigToast = {
   autoClose?: number | boolean;
@@ -15,8 +15,12 @@ export type IConfigToast = {
   titleStyle?: StyleProp<TextStyle>;
   textBodyStyle?: StyleProp<TextStyle>;
   onPress?: () => void;
+  onLongPress?: () => void;
   onShow?: () => void;
   onHide?: () => void;
+  isAssessment?: boolean;
+  startNewAssessment?: string;
+  assessmentToastText?: string;
 };
 
 type IProps = {
@@ -25,7 +29,11 @@ type IProps = {
 };
 
 type IState = {
+  styles: ReturnType<typeof __styles>;
+  cardHeight: number;
   overlayClose?: boolean;
+  visible: boolean;
+  config?: IConfigToast;
   data: null | (IConfigToast & { timeout: number });
 };
 
@@ -49,49 +57,266 @@ export class Toast extends React.Component<IProps, IState> {
     Toast.instance.current?._close();
   };
 
+  /**
+   * @type {React.ContextType<typeof SafeAreaInsetsContext>}
+   */
+  // public context!: React.ContextType<typeof SafeAreaInsetsContext>;
+
+  /**
+   * @type {Animated.Value}
+   * @private
+   */
+  private _positionToast: Animated.Value;
+
+  /**
+   * @type {number}
+   * @private
+   */
+  private _cardHeight: number;
+
+  /**
+   * @type {NodeJS.Timeout}
+   * @private
+   */
+  private _timeout?: any;
+
+  /**
+   * @param {IProps} props
+   * @param {React.ContextType<typeof SafeAreaInsetsContext>} context
+   */
   constructor(props: IProps) {
     super(props);
+    this._cardHeight = 0;
+    this._positionToast = new Animated.Value(-500);
     this.state = {
+      styles: __styles(props.isDark),
+      visible: false,
+      cardHeight: 0,
       data: null,
     };
   }
+
+  /**
+   * @param {Readonly<IProps>} prevProps
+   */
+  public componentDidUpdate = (prevProps: Readonly<IProps>): void => {
+    if (prevProps.isDark !== this.props.isDark) {
+      this.setState((prevState) => ({
+        ...prevState,
+        styles: __styles(this.props.isDark),
+      }));
+    }
+  };
 
   /**
    * @param {IConfigToast} args
    * @return {Promise<void>}
    */
   private _open = async (data: IConfigToast): Promise<void> => {
-    const { titleStyle, textBodyStyle } = this.props.config || {};
-    const timeout: number = typeof data.autoClose === 'number' ? data.autoClose : data.autoClose === false ? 0 : 5000;
-    await new Promise<void>((resolve) =>
-      this.setState((prevState) => ({ ...prevState, data: { titleStyle, textBodyStyle, ...data, description: data.textBody, timeout } }), resolve)
-    );
+    if (this.state.visible) {
+      clearTimeout(this._timeout);
+      this._startAnimation(ACTION.CLOSE);
+    }
+
+    this._positionToast = new Animated.Value(-500);
+
+    this.setState({ visible: true, config: data });
+
+    this._startAnimation(ACTION.OPEN);
+
+    const autoClose = data.autoClose ?? this.props.config?.autoClose;
+    if (autoClose || autoClose === undefined) {
+      const duration = typeof autoClose === 'number' ? autoClose : ENV.AUTO_CLOSE;
+      this._timeout = setTimeout(() => this._close(), duration);
+    }
+
     this.state.data?.onShow?.();
   };
 
   /**
    * @return {Promise<void>}
    */
-  private _close = async (): Promise<void> => {
-    this._closedHandler();
-  };
-
-  private _closedHandler = async (): Promise<void> => {
-    const onHide = this.state.data?.onHide;
-    await new Promise<void>((resolve) => this.setState((prevState) => ({ ...prevState, data: null }), resolve));
+  private _close = () => {
+    this._startAnimation(ACTION.CLOSE);
+    const onHide = this.state.config?.onShow;
+    this.setState((prevState) => ({ ...prevState, visible: false, config: undefined }));
     onHide?.();
   };
 
-  public render() {
-    const { data } = this.state;
-    if (!data) {
-      return null;
+  /**
+   * @param {ACTION} action
+   * @return {Promise<void>}
+   */
+  private _startAnimation = (action: ACTION) => {
+    Animated.timing(this._positionToast, {
+      toValue: action === ACTION.OPEN ? this.context?.top ?? 0 : -this._cardHeight,
+      duration: 250,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  /**
+   * @return {JSX.Element}
+   */
+  private CardRender = (): any => {
+    const { styles } = this.state;
+    if (this.state.config) {
+      const { type, title, textBody, onPress, onLongPress, isAssessment, assessmentToastText, startNewAssessment } = this.state.config;
+      return (
+        <Animated.View
+          onLayout={({
+            nativeEvent: {
+              layout: { height },
+            },
+          }) => (this._cardHeight = height)}
+          style={StyleSheet.flatten([styles.cardRow, { transform: [{ translateY: this._positionToast }] }])}
+        >
+          {isAssessment ? (
+            <Pressable style={styles.assessmentCard}>
+              <Image source={require('../assets/circleIcon.png')} style={styles.tickIcon} />
+              <Text style={styles.textMessage}>
+                {assessmentToastText}
+                <Text style={styles.startAssessmentText}> {startNewAssessment}</Text>
+              </Text>
+              <Pressable onPress={this._close}>
+                <Icon name={'close'} size={12} style={{ color: colors.grey20 }} />
+              </Pressable>
+            </Pressable>
+          ) : (
+            <Pressable style={styles.cardContainer} onPress={onPress} onLongPress={onLongPress}>
+              {type && (
+                <>
+                  <View style={styles.backendImage} />
+                  <Image source={getImage(type)} resizeMode="contain" style={StyleSheet.flatten([styles.image, styles[`${type}Image`]])} />
+                </>
+              )}
+              <View accessible style={styles.toasttileContainer}>
+                {title !== undefined && (
+                  <Text {...testProps('Toast_Title')} style={styles.titleLabel}>
+                    {title}
+                  </Text>
+                )}
+                {textBody !== undefined && (
+                  <Text {...testProps('Toast_Body')} style={styles.descLabel}>
+                    {textBody}
+                  </Text>
+                )}
+              </View>
+            </Pressable>
+          )}
+        </Animated.View>
+      );
     }
-    const { isDark, config: configGeneral } = this.props;
-    return (
-      <SafeAreaInsetsContext.Consumer>
-        {(insets) => <ToastRender {...data} isDark={isDark} paddingTop={insets?.top} configGeneral={configGeneral} onClose={this._closedHandler} />}
-      </SafeAreaInsetsContext.Consumer>
-    );
-  }
+    return <></>;
+  };
+
+  /**
+   * @return {JSX.Element}
+   */
+  public render = (): any => {
+    const { visible } = this.state;
+    const { CardRender } = this;
+    if (!visible) {
+      return <></>;
+    }
+    return <CardRender />;
+  };
 }
+
+const __styles = (isDark: boolean) =>
+  StyleSheet.create({
+    backgroundContainer: {
+      ...StyleSheet.absoluteFillObject,
+      backgroundColor: '#00000070',
+    },
+
+    container: {
+      position: 'absolute',
+      backgroundColor: '#00000030',
+      top: 0,
+      left: 0,
+      right: 0,
+    },
+
+    cardRow: {
+      zIndex: 9999,
+      position: 'absolute',
+      left: 0,
+      right: 0,
+    },
+
+    cardContainer: {
+      flexDirection: 'row',
+      borderRadius: 12,
+      paddingHorizontal: 12,
+      paddingTop: 12,
+      paddingBottom: 12,
+      marginHorizontal: 12,
+      marginBottom: 12,
+      backgroundColor: Color.get('card', isDark),
+    },
+    toasttileContainer: { overflow: 'hidden', flex: 1 },
+
+    titleLabel: {
+      fontWeight: 'bold',
+      fontSize: 18,
+      color: Color.get('label', isDark),
+    },
+    descLabel: {
+      color: Color.get('label', isDark),
+    },
+    backendImage: {
+      position: 'absolute',
+      alignSelf: 'center',
+      height: 12,
+      width: 12,
+      backgroundColor: '#FBFBFB',
+      borderRadius: 100,
+      left: 12 + 7,
+    },
+    image: {
+      alignSelf: 'center',
+      width: 25,
+      aspectRatio: 1,
+      marginRight: 12,
+    },
+
+    assessmentCard: {
+      width: '92%',
+      flexDirection: 'row',
+      borderRadius: 5,
+      paddingVertical: 12,
+      backgroundColor: colors.green30,
+      borderWidth: 0.5,
+      borderColor: colors.green20,
+      alignItems: 'center',
+      justifyContent: 'center',
+      alignSelf: 'center',
+    },
+    tickIcon: {
+      width: 18,
+      height: 18,
+    },
+    textMessage: {
+      width: '80%',
+      marginHorizontal: 8,
+      // fontFamily: fontFamily.regular,
+      fontSize: 12,
+      alignSelf: 'center',
+    },
+    startAssessmentText: {
+      fontWeight: 'bold',
+    },
+
+    [`${ALERT_TYPE.SUCCESS}Image`]: {
+      tintColor: Color.get('success', isDark),
+    },
+    [`${ALERT_TYPE.DANGER}Image`]: {
+      tintColor: Color.get('danger', isDark),
+    },
+    [`${ALERT_TYPE.WARNING}Image`]: {
+      tintColor: Color.get('warning', isDark),
+    },
+  });
+
+export default Toast;

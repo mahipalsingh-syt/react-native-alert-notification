@@ -4,6 +4,16 @@ const WINDOWS = Dimensions.get('window');
 const WIDTH = WINDOWS.width;
 const HEIGHT = WINDOWS.height;
 
+export const colors = {
+  green10: '#19A04B',
+  yellow10: '#E99921',
+  red10: '#EB4B4B',
+  grey10: '#A3A9B9',
+  grey20: '#707374',
+  green20: '#90D6AA',
+  green30: '#DFFBE8',
+};
+
 enum ACTION {
   OPEN,
   CLOSE,
@@ -46,17 +56,17 @@ const ENV = {
     success: {
       ios: 'systemGreen',
       android: ['@android:color/holo_green_light', '@android:color/holo_green_dark'],
-      default: ['rgb(52,199,85)', 'rgb(48,209,88)'],
+      default: ['#19A04B', '#19A04B'],
     },
     danger: {
       ios: 'systemRed',
       android: ['@android:color/holo_red_light', '@android:color/holo_red_dark'],
-      default: ['rgb(255,59,48)', 'rgb(255,69,58)'],
+      default: ['#EB4B4B', '#EB4B4B'],
     },
     warning: {
       ios: 'systemOrange',
       android: ['@android:color/holo_orange_light', '@android:color/holo_orange_dark'],
-      default: ['rgb(255,149,0)', 'rgb(255,159,10)'],
+      default: ['#E99921', '#E99921'],
     },
     info: {
       ios: 'systemBlue',
