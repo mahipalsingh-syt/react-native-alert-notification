@@ -2,7 +2,7 @@ import * as React from 'react';
 import { Animated, Image, Pressable, StyleProp, StyleSheet, Text, TextStyle, View } from 'react-native';
 // import { SafeAreaInsetsContext } from 'react-native-safe-area-context';
 import { ACTION, ALERT_TYPE, ENV, colors } from '../config/ENV';
-import { Color, getImage, testProps, SIZES } from '../service';
+import { Color, getImage, testProps, SIZES, fontFamily } from '../service';
 import Icon from 'react-native-vector-icons/AntDesign';
 
 export type IConfigToast = {
@@ -299,7 +299,7 @@ const __styles = (isDark: boolean) =>
     textMessage: {
       width: '80%',
       marginHorizontal: SIZES(8),
-      // fontFamily: fontFamily.regular,
+      fontFamily: fontFamily.regular,
       fontSize: SIZES(12),
       alignSelf: 'center',
     },

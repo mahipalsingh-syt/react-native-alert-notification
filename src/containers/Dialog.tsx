@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { Animated, Image, Modal, Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { ACTION, ALERT_TYPE, ENV, colors } from '../config';
-import { Color, getImage, testProps, SIZES } from '../service';
+import { Color, getImage, testProps, SIZES, fontFamily } from '../service';
 
 export type IConfigDialog = {
   type: ALERT_TYPE;
@@ -313,12 +313,12 @@ const __styles = (isDark: boolean) =>
 
     titleLabel: {
       fontSize: SIZES(18),
-      // fontFamily: fontFamily.semibold,
+      fontFamily: fontFamily.semibold,
       color: Color.get('label', isDark),
     },
     descLabel: {
       textAlign: 'center',
-      // fontFamily: fontFamily.regular,
+      fontFamily: fontFamily.regular,
       color: Color.get('label', isDark),
     },
     button: {
@@ -332,9 +332,8 @@ const __styles = (isDark: boolean) =>
     },
     buttonLabel: {
       color: '#fff',
-
       fontSize: SIZES(15),
-      // fontFamily: fontFamily.semibold,
+      fontFamily: fontFamily.semibold,
     },
     [ALERT_TYPE.SUCCESS]: {
       backgroundColor: Color.get('success', isDark),
